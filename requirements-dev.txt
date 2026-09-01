@@ -1,0 +1,14 @@
+# Development and test dependencies. Includes everything in requirements.txt.
+#
+# Install:
+#   pip install -r requirements-dev.txt
+#
+# The test suite never launches a browser and never touches the network, so
+# `playwright install` is not required to run it.
+
+-r requirements.txt
+
+pytest==9.1.1
+pytest-asyncio==1.4.0
+pytest-cov==7.1.0
+httpx==0.28.1

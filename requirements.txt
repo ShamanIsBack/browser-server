@@ -1,0 +1,12 @@
+# Runtime dependencies. Pinned exactly so a clone reproduces a known-good
+# environment; see requirements-dev.txt for the test toolchain.
+#
+# Install:
+#   pip install -r requirements.txt
+#   playwright install chromium      # downloads the browser binary itself
+
+playwright==1.62.0
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+python-dotenv==1.2.3
+Pillow==12.3.0
