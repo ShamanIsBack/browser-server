@@ -27,8 +27,9 @@ _lock: asyncio.Lock | None = None
 _MIN_API_KEY_LENGTH = 16
 _MAX_TYPE_TEXT_LENGTH = 10_000
 # Allow single printable chars, named keys (e.g. Enter, ArrowDown, F12), or
-# modifier+key combos (e.g. Control+a, Shift+Tab). Anchored, ASCII-only.
-_KEY_PATTERN = re.compile(r"^([A-Za-z]+\+){0,3}([A-Za-z0-9]+|[\x20-\x7e])$")
+# modifier+key combos (e.g. Control+a, Shift+Tab). ASCII-only, and anchored
+# with \Z rather than $ — $ also matches just before a trailing newline.
+_KEY_PATTERN = re.compile(r"^([A-Za-z]+\+){0,3}([A-Za-z0-9]+|[\x20-\x7e])\Z")
 
 
 @asynccontextmanager
