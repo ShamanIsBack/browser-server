@@ -89,6 +89,13 @@ class BrowserSession:
 
     async def reset(self, url: str | None) -> dict:
         try:
+            # Clear the page pointer before building the new context. The "page"
+            # handler fires while new_page() below is still awaiting, and it
+            # treats any page that is not self._page as a popup to be closed —
+            # so a stale pointer here would make reset close the very page it
+            # just created, leaving the session unrecoverable.
+            self._page = None
+
             if self._context is not None:
                 try:
                     await self._context.close()
