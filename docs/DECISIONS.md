@@ -381,3 +381,90 @@ do not appear. This is listed under Limitations in both the README and the
 skill file. `total_page_marks` is returned alongside the viewport marks
 specifically so the agent can tell "nothing here" from "nothing here *yet* —
 scroll".
+
+---
+
+## ADR-008 — Why this exists alongside a vendor browser extension
+
+**Status:** accepted, with a stated expiry condition · **Date:** 2026-09-03
+
+### Context
+
+Since this server was designed, vendor-supplied browser control has become
+ordinary. Claude in Chrome, and the equivalents shipping from other vendors,
+drive a real Chrome tab from inside the assistant itself: no server to run, no
+API key to configure, no SSRF guard to write, and no `--workers 1` footgun to
+document.
+
+For a person sitting at their own machine asking an assistant to do something
+on a page, that is straightforwardly better than this. It is already logged
+into the sites they use, there is nothing to install and nothing to operate,
+and it sees the page exactly as they do. Any reader who knows the extension
+exists will ask why this repository does too, and the README should not dodge
+the question.
+
+Three boundaries answer it. Each is a place where the extension model does not
+reach, not a place where this is merely different.
+
+**1. Nobody is at the keyboard.** An extension drives a *human's* live browser
+session — it needs that human signed in, with the browser open, on the machine
+where the work happens. This server runs unattended: on a VM, from a cron
+entry, inside a pipeline that fires at 03:00. That is not an edge case for the
+work this is aimed at. Most automation an SME actually pays for is automation
+precisely because nobody is present for it — the nightly supplier-portal check,
+the form that gets filled when an order arrives, the weekly figure pulled from
+a system with no API. An interactive tool cannot do the one thing that makes
+those worth paying for.
+
+**2. The caller is not fixed to one vendor's model.** ADR-002 chose an HTTP
+boundary over an in-process library, and the consequence compounds here:
+anything that can send JSON is a valid client. GPT, a local Llama or Qwen, a
+LangGraph node, a Bash script with `curl`, a test harness with no model in it
+at all. An extension is, by construction, one assistant's hands. This is a
+capability any caller can rent.
+
+**3. Vendor dependency in a client's production path.** A client's automation
+built on one vendor's extension inherits that vendor's terms of service,
+availability, pricing and roadmap. When the extension changes what it permits
+or how it is billed, the client's process changes with it, on the vendor's
+schedule rather than theirs. A ~600-line server they can read, host and pin is
+a different kind of commitment to recommend — the dependency is Playwright and
+Chromium, both of which they could already have been depending on.
+
+### Decision
+
+Keep this, and say plainly in the README what it is *not* for: it is not the
+right tool for interactive, at-the-keyboard browsing, and the extension is the
+better answer there. It is the right tool for unattended browser work, for
+non-Claude callers, and for anywhere a vendor extension is not an acceptable
+production dependency.
+
+The README gets a short section pointing here, rather than leaving an obvious
+question unanswered on the front page.
+
+### Consequences
+
+**The first boundary is the load-bearing one, and it is the one most likely to
+stop being true.** If Anthropic — or any vendor — ships a server-side or
+headless version of this capability, "nobody at the keyboard" largely
+evaporates, and boundary 3 weakens with it because the vendor path would then
+be a deployable one. Boundary 2 would survive, but it is the weakest of the
+three on its own: "works with any model" is worth less than "works with no
+human", and a single-vendor tool that runs unattended would cover most of what
+this covers. **That is a real risk to the argument, stated here rather than
+argued away.** Revisit this record if that ships; the honest outcome at that
+point may be that this becomes a reference implementation rather than a
+recommendation.
+
+**Feature work on this project stops here.** For the author's own day-to-day
+use the extension is simply better, and building a second, worse version of
+something that already works is not a good use of the time. What this remains
+is two things, both real: portfolio evidence — an HTTP security boundary, a
+documented threat model, 366 offline tests and a decision log with a reversal
+in it — and a deployable component for the unattended case, ready when a
+project needs one.
+
+That is a pause with a reason, not an abandonment. The suite is green, the
+limitations are written down, and the SSRF and Python-floor items in the local
+`TODO.md` are recorded rather than quietly dropped. Anyone picking it up,
+including a later version of the author, starts from a known state.

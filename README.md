@@ -99,6 +99,30 @@ That turns an unbounded page into a short list — and makes the agent's
 instruction unambiguous, because an integer cannot be a malformed selector.
 Ids are regenerated on every look and are valid only for the most recent one.
 
+## Why not a browser extension?
+
+Claude in Chrome — and the equivalents now shipping from other vendors — drives
+a real Chrome tab from inside the assistant, with no server to run and no key
+to configure. For a person sitting at their own machine, it is simply better
+than this, and this README will not pretend otherwise.
+
+Three boundaries are why this still exists:
+
+- **Nobody is at the keyboard.** An extension drives a *human's* live browser
+  session, with that human signed in and present. This runs unattended — on a
+  VM, from a cron entry, in a pipeline that fires at 03:00. Most automation an
+  SME actually pays for is automation precisely because nobody is there for it.
+- **The caller is not fixed to one vendor's model.** The HTTP boundary
+  ([ADR-002](docs/DECISIONS.md)) means any client that speaks JSON works: GPT,
+  a local model, a LangGraph node, a shell script with `curl`.
+- **No vendor in a client's production path.** Automation built on one vendor's
+  extension inherits that vendor's terms, availability and roadmap, and changes
+  on their schedule rather than the client's.
+
+The full argument — including the condition that would invalidate most of it,
+which is a vendor shipping a headless or server-side version — is
+[ADR-008](docs/DECISIONS.md).
+
 ## Security
 
 This server drives a real browser on the machine it runs on, and the URLs it
@@ -229,3 +253,18 @@ agent always ends a step looking at the result of it.
   reCAPTCHA widgets will not appear in `dom_marks`.
 - **Blocked is blocked.** No evasion; sites that refuse automation win.
 - **No TLS, no rate limiting.** Loopback by default for that reason.
+
+## Project status
+
+**Feature-complete; not actively developed.** For interactive, at-the-keyboard
+browsing the vendor extensions are better, and building a second and worse
+version of something that already works is not a good use of the time. This
+stays useful for the unattended case and for non-Claude callers — see
+[ADR-008](docs/DECISIONS.md) — and it is left in a known state rather than
+walked away from: the suite is green, the limitations above are the real ones,
+and the two open items (the SSRF guard's DNS gap, and a Python floor claimed at
+3.11 but only verified on 3.14.5) are written down rather than quietly dropped.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
