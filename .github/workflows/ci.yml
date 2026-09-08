@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege for the workflow token. This job only ever reads the
+# checkout: it publishes nothing, comments on nothing and pushes nowhere.
+# Declaring it here means a future step cannot quietly acquire write access to
+# the repository by inheriting a permissive default.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      # Run every version even after one fails: "3.13 is broken" and "3.13 and
+      # 3.14 are broken" are different problems and the first run should say
+      # which one it is.
+      fail-fast: false
+      matrix:
+        # 3.12 is the floor: it is what Ubuntu 24.04 ships, which is what the
+        # server is deployed on. 3.11 was deliberately dropped rather than
+        # tested - supporting a version is a commitment to keep it working, and
+        # nothing this project runs on uses it. 3.13 and 3.14 are here for the
+        # opposite reason: pytest.ini promotes DeprecationWarning to an error,
+        # so newer interpreters flag removals roughly a release before they
+        # land.
+        python-version: ["3.12", "3.13", "3.14"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      # Deliberately no `playwright install`. The suite never launches a
+      # browser and never touches the network, so the ~300 MB Chromium download
+      # would buy nothing and add a flaky network dependency. If that ever
+      # stops being true, it will surface here as a failure rather than as a
+      # silent behaviour change.
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      # pytest.ini already promotes DeprecationWarning to an error, which is
+      # most of the reason to run a version matrix at all: a deprecation on a
+      # newer interpreter fails the build instead of waiting to become a
+      # removal.
+      - name: Test
+        run: pytest --cov --cov-report=term-missing --cov-fail-under=95

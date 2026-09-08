@@ -1,5 +1,9 @@
 # Browser Server
 
+[![CI](https://github.com/ShamanIsBack/browser-server/actions/workflows/ci.yml/badge.svg)](https://github.com/ShamanIsBack/browser-server/actions/workflows/ci.yml)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 **An AI agent can read a web page. It cannot use one.** This gives it hands.
 
 ---
@@ -178,7 +182,7 @@ making a decision this project respects. See [ADR-005](docs/DECISIONS.md).
 
 | | |
 |---|---|
-| **Runtime** | Python 3.11+ · asyncio (developed and tested on 3.14.5) |
+| **Runtime** | Python 3.12+ · asyncio (CI runs 3.12, 3.13 and 3.14; developed on 3.14.5) |
 | **Browser** | Playwright · Chromium |
 | **API** | FastAPI · Pydantic v2 · Uvicorn (single worker) |
 | **Imaging** | Pillow — screenshots downscaled to ≤1024px JPEG q75 |
@@ -262,8 +266,12 @@ version of something that already works is not a good use of the time. This
 stays useful for the unattended case and for non-Claude callers — see
 [ADR-008](docs/DECISIONS.md) — and it is left in a known state rather than
 walked away from: the suite is green, the limitations above are the real ones,
-and the two open items (the SSRF guard's DNS gap, and a Python floor claimed at
-3.11 but only verified on 3.14.5) are written down rather than quietly dropped.
+and the one remaining open item (the SSRF guard's DNS gap) is written down rather
+than quietly dropped. The Python floor used to be a second such item — the README
+advertised 3.11+ while only 3.14.5 had ever run the suite. It was resolved by
+narrowing the claim to what is deployed on and tested rather than by widening the
+testing: a supported version is a promise to keep it working, and 3.11 is not a
+promise this project has any reason to make.
 
 ## License
 
